@@ -92,8 +92,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-**Developer**: [Your Name]
-**Email**: [your.email@example.com]
+**Developer**: [Jimmy Matewere](https://github.com/Jimmy-JayJay)
+**Project Link**: [https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1](https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1)
 
 ## Acknowledgments
 

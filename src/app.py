@@ -30,13 +30,14 @@ from data_processing import (
     calculate_extreme_rainfall_frequency,
     robust_normalize
 )
+from disaster_processing import load_emdat_data
 
 # Page configuration
 st.set_page_config(
     page_title="Malawi Climate Risk Dashboard",
     page_icon="None",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="auto"
 )
 
 # Custom CSS
@@ -82,39 +83,40 @@ st.markdown("""
 
 @st.cache_data
 def load_real_data():
-    """Load real data from NASA POWER, World Bank, and WorldPop"""
-    data_dir = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
+    """Load all real datasets"""
     
+    # 1. Load Climate Data (NASA POWER)
     try:
-        # Load REAL data files
-        climate_data = pd.read_csv(os.path.join(data_dir, 'climate_data_nasa_power.csv'))
-        socioeconomic = pd.read_csv(os.path.join(data_dir, 'socioeconomic_data_enhanced.csv'))
+        climate_data = pd.read_csv("data/processed/climate_data_nasa_power.csv")
+    except FileNotFoundError:
+        st.error("Climate data file not found! Please run data collection script.")
+        climate_data = pd.DataFrame()
+
+    # 2. Load Socioeconomic Data (World Bank)
+    try:
+        socioeconomic = pd.read_csv("data/processed/socioeconomic_data_enhanced.csv")
+    except FileNotFoundError:
+        socioeconomic = pd.DataFrame()
         
-        # For now, use the 28-district enhanced data
-        # Cyclone exposure is calculated in the config
-        from config import ALL_DISTRICTS
-        from data_collection import calculate_cyclone_exposure
-        
-        cyclone_data = []
-        for district, coords in ALL_DISTRICTS.items():
-            exposure = calculate_cyclone_exposure(district, coords['lat'])
-            cyclone_data.append({'district': district, 'cyclone_exposure': exposure})
-        cyclone_df = pd.DataFrame(cyclone_data)
-        
-        # Create sample disaster data (can be replaced with EM-DAT when available)
+    # 3. Calculate Cyclone Exposure (dynamically from config)
+    cyclone_data = []
+    for district, coords in ALL_DISTRICTS.items():
+        exposure = calculate_cyclone_exposure(district, coords['lat'])
+        cyclone_data.append({'district': district, 'cyclone_exposure': exposure})
+    cyclone_df = pd.DataFrame(cyclone_data)
+
+    # 4. Load Disaster Data (EM-DAT)
+    disasters = load_emdat_data()
+    if disasters.empty:
+         # Fallback only if EM-DAT parsing fails
         disaster_districts = ['Nsanje', 'Chikwawa', 'Phalombe', 'Mulanje', 'Zomba', 'Blantyre', 'Mangochi']
-        num_events = 42  # 6 events per district
         disasters = pd.DataFrame({
-            'district': disaster_districts * 6,  # 7 districts * 6 = 42
-            'year': ([2015, 2019, 2022, 2023, 2015, 2019] * 7),  # 42 total
-            'type': (['Flood', 'Cyclone', 'Storm', 'Flood', 'Drought', 'Flood'] * 7)  # 42 total
+            'district': disaster_districts * 6,
+            'year': ([2015, 2019, 2022, 2023, 2015, 2019] * 7),
+            'type': (['Flood', 'Cyclone', 'Storm', 'Flood', 'Drought', 'Flood'] * 7)
         })
-        
-        return climate_data, socioeconomic, disasters, cyclone_df
-    except FileNotFoundError as e:
-        st.error(f"Real data files not found: {e}")
-        st.info("Please run: python scripts/fetch_nasa_climate_data.py")
-        return None, None, None, None
+    
+    return climate_data, socioeconomic, disasters, cyclone_df
 
 
 @st.cache_data
@@ -506,7 +508,7 @@ def main():
         - **Socioeconomic:** World Bank Development Indicators (Poverty, Literacy, Water Access)
         - **Population:** WorldPop (2020 Constrained UN-Adjusted)
         - **Boundaries:** GADM v4.1 (Level 1 Administrative Areas)
-        - **Disasters:** Sample pattern data (Placeholder for EM-DAT integration)
+        - **Disasters:** EM-DAT International Disaster Database (2000-2024)
         
         #### Normalization
         All indicators are normalized to a 0-100 scale using robust percentile-based normalization

@@ -64,10 +64,6 @@ class RiskScorer:
         if 'temperature_extremes' in indicators:
             score += indicators['temperature_extremes'] * self.hazard_weights['temperature_extremes']
         
-        # Cyclone exposure
-        if 'cyclone_exposure' in indicators:
-            score += indicators['cyclone_exposure'] * self.hazard_weights['cyclone_exposure']
-        
         return score
     
     def calculate_exposure_score(self, indicators: Dict[str, float]) -> float:
@@ -145,7 +141,16 @@ class RiskScorer:
                             exposure: float, 
                             adaptive_capacity: float) -> float:
         """
-        Calculate composite risk score
+        Calculate composite risk score using IPCC AR5 multiplicative framework
+        
+        IPCC AR5 Framework: Risk = f(Hazard, Exposure, Vulnerability)
+        This implementation uses: Risk = Hazard × Exposure × Vulnerability
+        
+        The multiplicative relationship ensures:
+        - If any component is zero, risk is zero (you can't have risk without
+          all three components present)
+        - High hazard with zero exposure = zero risk (reflects reality)
+        - Components interact rather than being independent
         
         Args:
             hazard: Hazard component score (0-100)
@@ -158,12 +163,21 @@ class RiskScorer:
         # Convert adaptive capacity to vulnerability (inverse relationship)
         vulnerability = 100 - adaptive_capacity
         
-        # Weighted sum
-        risk_score = (
-            hazard * self.weights['hazard'] +
-            exposure * self.weights['exposure'] +
-            vulnerability * self.weights['adaptive_capacity']
-        )
+        # Normalize components to 0-1 scale for multiplication
+        h_norm = hazard / 100.0
+        e_norm = exposure / 100.0
+        v_norm = vulnerability / 100.0
+        
+        # IPCC AR5 Multiplicative Model: Risk = H × E × V
+        # Using geometric mean to maintain 0-100 scale interpretability
+        # Risk = (H × E × V)^(1/3) × 100
+        # This preserves the multiplicative interaction while keeping scores interpretable
+        raw_product = h_norm * e_norm * v_norm
+        
+        # Geometric mean normalization: cube root to maintain scale
+        # When all components are 100, result is 100
+        # When any component is 0, result is 0
+        risk_score = (raw_product ** (1/3)) * 100
         
         # Ensure score is within bounds
         risk_score = np.clip(risk_score, 0, 100)

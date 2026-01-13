@@ -57,11 +57,10 @@ WEIGHTS = {
 
 # Hazard component sub-weights (refined methodology)
 HAZARD_WEIGHTS = {
-    'rainfall_variability': 0.20,
-    'drought_frequency': 0.20,
+    'rainfall_variability': 0.25,
+    'drought_frequency': 0.25,
     'flood_risk': 0.25,
-    'temperature_extremes': 0.20,
-    'cyclone_exposure': 0.15
+    'temperature_extremes': 0.25
 }
 
 # Exposure component sub-weights (refined methodology)

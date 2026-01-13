@@ -52,14 +52,23 @@ Malawi faces increasing climate risks, including floods, droughts, and cyclones.
 
 ## Methodology
 
-The risk score (0-100) is calculated as:
-**Risk = Hazard (40%) + Exposure (30%) + Vulnerability (30%)**
+The dashboard strictly implements the **IPCC AR5 Multiplicative Risk Framework**.
 
-- **Hazard**: Rainfall variability, drought frequency, heat days, cyclone exposure.
-- **Exposure**: Population density, agricultural dependence.
-- **Vulnerability**: Poverty rate, lack of education, poor service access.
+**Formula:**
+$$ Risk = \sqrt[3]{Hazard \times Exposure \times Vulnerability} $$
 
-See `docs/methodology.md` for full details.
+This multiplicative approach ensures that:
+
+- **Zero-handling**: If any component (e.g., Exposure) is zero, the total Risk is zero.
+- **Interaction**: High hazard combined with high vulnerability produces disproportionately higher risk scores.
+
+**Components:**
+
+- **Hazard**: Rainfall Variability (25%), Drought Frequency (25%), Flood Risk (25%), Heat Extremes (25%).
+- **Exposure**: Population Density, Agricultural Dependence, Infrastructure Deficit.
+- **Vulnerability**: Poverty Rate, Education Levels, Access to Services (Water/Health).
+
+All indicators are normalized to a 0-100 scale using robust percentile clipping (5th-95th) to handle outliers.
 
 ## Project Structure
 

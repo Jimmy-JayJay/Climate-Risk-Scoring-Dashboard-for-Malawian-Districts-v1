@@ -98,14 +98,7 @@ def load_real_data():
     except FileNotFoundError:
         socioeconomic = pd.DataFrame()
         
-    # 3. Calculate Cyclone Exposure (dynamically from config)
-    cyclone_data = []
-    for district, coords in ALL_DISTRICTS.items():
-        exposure = calculate_cyclone_exposure(district, coords['lat'])
-        cyclone_data.append({'district': district, 'cyclone_exposure': exposure})
-    cyclone_df = pd.DataFrame(cyclone_data)
-
-    # 4. Load Disaster Data (EM-DAT)
+    # 3. Load Disaster Data (EM-DAT)
     disasters = load_emdat_data()
     if disasters.empty:
          # Fallback only if EM-DAT parsing fails
@@ -116,22 +109,19 @@ def load_real_data():
             'type': (['Flood', 'Cyclone', 'Storm', 'Flood', 'Drought', 'Flood'] * 7)
         })
     
-    return climate_data, socioeconomic, disasters, cyclone_df
+    return climate_data, socioeconomic, disasters
 
 
 @st.cache_data
 def calculate_risk_scores():
     """Calculate risk scores for all 28 districts"""
-    climate_data, socioeconomic, disasters, cyclone_df = load_real_data()
+    climate_data, socioeconomic, disasters = load_real_data()
     
     if socioeconomic is None:
         return pd.DataFrame()
     
     # Prepare indicators DataFrame
     indicators = socioeconomic.copy()
-    
-    # Add cyclone exposure
-    indicators = indicators.merge(cyclone_df, on='district')
     
     # Calculate disaster frequency from disaster data
     disaster_counts = disasters.groupby('district').size().reset_index(name='disaster_count')
@@ -197,8 +187,7 @@ def calculate_risk_scores():
             'rainfall_variability': row['rainfall_variability'],
             'drought_frequency': row['drought_frequency'],
             'flood_risk': row['flood_risk'],
-            'temperature_extremes': row['temperature_extremes'],
-            'cyclone_exposure': row['cyclone_exposure']
+            'temperature_extremes': row['temperature_extremes']
         }
         
         exposure_indicators = {
@@ -342,7 +331,7 @@ def main():
         risk_data = calculate_risk_scores()
         if risk_data.empty:
             st.stop()
-        climate_data, socioeconomic, disasters, cyclone_df = load_real_data()
+        climate_data, socioeconomic, disasters = load_real_data()
     
     # Sidebar
     st.sidebar.header("Dashboard Controls")
@@ -460,27 +449,36 @@ def main():
         st.plotly_chart(comparison_fig, use_container_width=True)
         
         # Component breakdown
-        st.markdown("### Component Weights")
+        st.markdown("### IPCC AR5 Risk Components")
+        st.markdown("""
+        **Multiplicative Risk Model:** `Risk = ∛(Hazard × Exposure × Vulnerability)`
+        
+        Each component is calculated as a composite of its sub-indicators. 
+        The final risk score uses **geometric mean** — all three components must be 
+        present for risk to exist.
+        """)
         
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("**Hazard (40%)**")
-            st.write("- Rainfall Variability: 20%")
-            st.write("- Drought Frequency: 20%")
+            st.markdown("**🌪️ Hazard**")
+            st.write("_Sub-indicator weights within Hazard:_")
+            st.write("- Rainfall Variability: 25%")
+            st.write("- Drought Frequency: 25%")
             st.write("- Flood Risk: 25%")
-            st.write("- Temperature Extremes: 20%")
-            st.write("- Cyclone Exposure: 15%")
+            st.write("- Temperature Extremes: 25%")
         
         with col2:
-            st.markdown("**Exposure (30%)**")
+            st.markdown("**👥 Exposure**")
+            st.write("_Sub-indicator weights within Exposure:_")
             st.write("- Exposed Population: 35%")
             st.write("- Agricultural Dependence: 35%")
             st.write("- Infrastructure Deficit: 20%")
             st.write("- Cropland Exposure: 10%")
         
         with col3:
-            st.markdown("**Adaptive Capacity (30%)**")
+            st.markdown("**🛡️ Vulnerability**")
+            st.write("_Sub-indicator weights within Vulnerability:_")
             st.write("- Poverty Rate: 35% (inverted)")
             st.write("- Education Level: 25%")
             st.write("- Service Access: 25%")
@@ -490,18 +488,33 @@ def main():
         st.subheader("Methodology")
         
         st.markdown("""
-        ### IPCC-Aligned Risk Framework
+        ### IPCC AR5 Multiplicative Risk Framework
         
-        This dashboard implements the IPCC AR5 vulnerability framework:
+        This dashboard implements the **IPCC AR5 vulnerability framework** using a 
+        multiplicative risk model that reflects the true interdependence of risk components:
         
-        **Risk = f(Hazard, Exposure, Adaptive Capacity)**
+        **Risk = f(Hazard × Exposure × Vulnerability)**
         
         #### Composite Risk Score Formula
         ```
-        Risk Score = (Hazard × 0.40) + (Exposure × 0.30) + (Vulnerability × 0.30)
+        Risk Score = ∛(Hazard × Exposure × Vulnerability)
         
         Where: Vulnerability = 100 - Adaptive Capacity
         ```
+        
+        #### Why Multiplicative?
+        
+        The multiplicative model is **essential** for IPCC AR5 compliance because:
+        
+        - **If any component is zero, risk is zero** — You cannot have climate risk 
+          without hazards occurring, assets/people exposed, OR vulnerability to impacts.
+        - **Components interact** — High hazard combined with high exposure creates 
+          disproportionately higher risk than either alone.
+        - **Reflects physical reality** — A district with extreme cyclone hazard but 
+          zero exposed population has zero risk from that hazard.
+        
+        The geometric mean (cube root) normalization preserves the 0-100 scale 
+        interpretability while maintaining multiplicative interaction properties.
         
         #### Data Sources
         - **Climate Data:** NASA POWER API (Daily T2M & Rainfall, 2020-2024)
@@ -509,6 +522,19 @@ def main():
         - **Population:** WorldPop (2020 Constrained UN-Adjusted)
         - **Boundaries:** GADM v4.1 (Level 1 Administrative Areas)
         - **Disasters:** EM-DAT International Disaster Database (2000-2024)
+        
+        #### Component Calculation
+        Each component (Hazard, Exposure, Vulnerability) is first calculated as a 
+        **weighted composite** of its sub-indicators.
+        
+        *Note: The weights below apply ONLY to sub-indicator aggregation within each component. 
+        The final risk calculation treats Hazard, Exposure, and Vulnerability equally via multiplication.*
+        
+        | Component | Sub-indicator Weights |
+        |-----------|----------------------|
+        | **Hazard** | Rainfall CV (25%), Drought (25%), Flood (25%), Heat (25%) |
+        | **Exposure** | Population (35%), Agriculture (35%), Infrastructure (20%), Cropland (10%) |
+        | **Adaptive Capacity** | Poverty (35%), Education (25%), Services (25%), Local Capacity (15%) |
         
         #### Normalization
         All indicators are normalized to a 0-100 scale using robust percentile-based normalization
@@ -521,15 +547,15 @@ def main():
         - **Low:** 25-39
         - **Very Low:** 0-24
         
-        #### Current Implementation Status
-        - **Real Data:** Climate (NASA), Socioeconomic (World Bank), Population (WorldPop)
-        - **Modeled Data:** Disaster occurrences (based on historical frequency patterns)
-        - **Geography:** All 28 districts fully integrated
+        #### References
+        > IPCC, 2014: Climate Change 2014: Impacts, Adaptation, and Vulnerability. 
+        > Contribution of Working Group II to the Fifth Assessment Report.
+        > Chapter 19: Emergent Risks and Key Vulnerabilities.
         
         #### Citation
         If you use this dashboard or methodology, please cite:
         > Climate Risk Scoring Dashboard for Malawian Districts (2026). 
-        > Developed using IPCC AR5 vulnerability framework.
+        > Developed using IPCC AR5 multiplicative vulnerability framework.
         """)
         
         # Download button for data

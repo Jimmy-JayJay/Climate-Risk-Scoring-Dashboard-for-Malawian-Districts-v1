@@ -461,7 +461,7 @@ def main():
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.markdown("** Hazard**")
+            st.markdown("**Hazard**")
             st.write("_Sub-indicator weights within Hazard:_")
             st.write("- Rainfall Variability: 25%")
             st.write("- Drought Frequency: 25%")
@@ -469,7 +469,7 @@ def main():
             st.write("- Temperature Extremes: 25%")
         
         with col2:
-            st.markdown("** Exposure**")
+            st.markdown("**Exposure**")
             st.write("_Sub-indicator weights within Exposure:_")
             st.write("- Exposed Population: 35%")
             st.write("- Agricultural Dependence: 35%")
@@ -477,7 +477,7 @@ def main():
             st.write("- Cropland Exposure: 10%")
         
         with col3:
-            st.markdown("** Vulnerability**")
+            st.markdown("**Vulnerability**")
             st.write("_Sub-indicator weights within Vulnerability:_")
             st.write("- Poverty Rate: 35% (inverted)")
             st.write("- Education Level: 25%")

@@ -92,6 +92,23 @@ All indicators are normalized to a 0-100 scale using robust percentile clipping 
    streamlit run src/app.py
    ```
 
+## Project Structure
+
+```
+├── data/
+│   ├── processed/      # Cleaned indicator datasets
+│   └── raw/            # Raw JSON/CSV from APIs
+├── docs/               # Methodology documentation
+├── notebooks/          # Exploratory Data Analysis (EDA)
+├── scripts/            # Data collection and processing scripts
+├── src/                # Application source code
+│   ├── app.py          # Main Streamlit application
+│   ├── config.py       # Configuration and weights
+│   └── scoring_engine.py # Risk calculation logic
+├── tests/              # Unit tests
+├── requirements.txt    # Python dependencies
+└── README.md           # Project documentation
+```
 
 ## Contributing
 
@@ -113,4 +130,3 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - IPCC AR5 framework
 - NASA POWER Project
 - World Bank Open Data
-

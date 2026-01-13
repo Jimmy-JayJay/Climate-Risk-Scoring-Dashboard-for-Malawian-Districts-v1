@@ -1,23 +1,59 @@
 # Climate Risk Scoring Dashboard for Malawian Districts
 
-A comprehensive, data-driven dashboard for assessing climate resilience across Malawi's 28 districts. This tool integrates NASA POWER climate data, World Bank socioeconomic indicators, and geospatial analysis to calculate risk scores aligned with the IPCC AR5 vulnerability framework.
+🔗 **[Live Dashboard]([https://malawi-climate-risk-dashboard.streamlit.app/])** | [Methodology](src/app.py)
+
+A data-driven dashboard for assessing climate resilience across Malawi's 28 districts. This tool integrates NASA POWER climate data, World Bank socioeconomic indicators, and geospatial analysis to calculate risk scores aligned with the IPCC AR5 vulnerability framework.
 
 ## Project Overview
 
-Malawi faces increasing climate risks, including floods, droughts, and cyclones. This dashboard empowers policymakers, NGOs, and researchers to:
+Malawi faces escalating climate risks from floods, droughts, and extreme weather events. Climate adaptation funding often relies on outdated vulnerability assessments that fail to capture current conditions.
 
-- Identify high-risk districts using scientific data.
-- Visualize vulnerability through interactive maps.
-- Analyze risk components: Hazard, Exposure, and Vulnerability.
-- Plan targeted adaptation interventions.
+This dashboard addresses that gap by providing:
+
+- **Automated risk assessment** across all 28 Malawian districts
+- **Scientific methodology** implementing the IPCC AR5 vulnerability framework
+- **Real-time data integration** from NASA satellite observations and World Bank indicators
+- **Interactive visualization** enabling policymakers to identify high-risk districts and understand why they're vulnerable
+
+Built for policymakers, NGOs, researchers, and climate practitioners working on adaptation planning in Malawi.
 
 ## Key Features
 
-- **Real Climate Data**: Uses NASA POWER API for daily temperature and rainfall data (2020-2024).
+- **Satellite-Derived Climate Data**: Uses NASA POWER API for daily temperature and rainfall data (2020-2024).
 - **Socioeconomic Context**: Integrates official World Bank development indicators (Poverty, Literacy, etc.).
 - **Geospatial Precision**: Uses GADM Level 1 administrative boundaries and WorldPop population data.
-- **IPCC Agnostic**: Risk scoring methodology aligned with the IPCC AR5 framework.
+- **IPCC Aligned**: Risk scoring methodology aligned with the IPCC AR5 framework.
 - **Interactive Visualization**: Filter by risk components and drill down into specific districts.
+
+## Methodology
+
+This dashboard implements the **IPCC AR5 Multiplicative Risk Framework**:
+
+```
+Risk Score = ∛(Hazard × Exposure × Vulnerability)
+```
+
+**Why multiplicative?**
+
+- If any component is zero, risk is zero (you cannot have risk without hazard, exposure, AND vulnerability).
+- Components interact (high hazard + high exposure creates disproportionate risk).
+- Reflects physical reality of climate risk.
+
+**Components:**
+
+- **Hazard:** Rainfall variability, drought frequency, flood risk, heat extremes (25% each).
+- **Exposure:** Population density (35%), agricultural dependence (35%), infrastructure deficit (20%), cropland exposure (10%).
+- **Vulnerability:** Poverty rate (35%), education levels (25%), access to services (25%), local capacity (15%).
+
+All indicators are normalized to a 0-100 scale using robust percentile clipping (5th-95th) to handle outliers.
+
+## Risk Categories
+
+- **Very High (75-100)**: Immediate adaptation priority
+- **High (60-74)**: Significant intervention needed
+- **Medium (40-59)**: Moderate risk, monitoring required
+- **Low (25-39)**: Below-average risk
+- **Very Low (0-24)**: Minimal climate risk
 
 ## Data Sources
 
@@ -28,13 +64,19 @@ Malawi faces increasing climate risks, including floods, droughts, and cyclones.
 | **Population**    | WorldPop   | 2020 UN-adjusted population counts             |
 | **Boundaries**    | GADM v4.1  | Official administrative boundaries             |
 
+## Prerequisites
+
+- Python 3.8 or higher
+- Git
+- 2GB available disk space
+
 ## Installation & Setup
 
 1. **Clone the repository**:
 
    ```bash
-   git clone https://github.com/yourusername/malawi-climate-risk-dashboard.git
-   cd malawi-climate-risk-dashboard
+   git clone https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1.git
+   cd Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1
    ```
 
 2. **Set up environment**:
@@ -50,46 +92,6 @@ Malawi faces increasing climate risks, including floods, droughts, and cyclones.
    streamlit run src/app.py
    ```
 
-## Methodology
-
-The dashboard strictly implements the **IPCC AR5 Multiplicative Risk Framework**.
-
-**Formula:**
-$$ Risk = \sqrt[3]{Hazard \times Exposure \times Vulnerability} $$
-
-This multiplicative approach ensures that:
-
-- **Zero-handling**: If any component (e.g., Exposure) is zero, the total Risk is zero.
-- **Interaction**: High hazard combined with high vulnerability produces disproportionately higher risk scores.
-
-**Components:**
-
-- **Hazard**: Rainfall Variability (25%), Drought Frequency (25%), Flood Risk (25%), Heat Extremes (25%).
-- **Exposure**: Population Density, Agricultural Dependence, Infrastructure Deficit.
-- **Vulnerability**: Poverty Rate, Education Levels, Access to Services (Water/Health).
-
-All indicators are normalized to a 0-100 scale using robust percentile clipping (5th-95th) to handle outliers.
-
-## Project Structure
-
-```
-├── data/
-│   ├── processed/      # Cleaned data used by the app
-│   └── raw/            # Raw source data
-├── docs/               # Methodology and guides
-├── notebooks/          # Analysis notebooks
-├── scripts/            # Data collection scripts
-├── src/                # Source code
-├── requirements.txt    # Dependencies
-└── README.md           # This file
-```
-
-## Future Enhancements
-
-- Expand analysis to sub-district level
-- Integrate real-time NASA POWER API
-- Add time-series trend analysis
-- Incorporate climate model projections
 
 ## Contributing
 
@@ -101,12 +103,14 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## Contact
 
-**Developer**: [Jimmy Matewere](https://github.com/Jimmy-JayJay)
-**Project Link**: [https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1](https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1)
+**Developer:** Jimmy Matewere  
+**Email:** jimmymatewere@gmail.com  
+**LinkedIn:** [linkedin.com/in/jimmy-matewere](https://linkedin.com/in/jimmy-matewere)  
+**Project Link:** [GitHub Repository](https://github.com/Jimmy-JayJay/Climate-Risk-Scoring-Dashboard-for-Malawian-Districts-v1)
 
 ## Acknowledgments
 
 - IPCC AR5 framework
 - NASA POWER Project
 - World Bank Open Data
-- Malawi National Statistical Office
+

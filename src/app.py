@@ -323,6 +323,7 @@ def create_comparison_chart(data):
 # Main app
 def main():
     # Header
+    st.warning("This is v1 of the dashboard. The updated version with refined methodology is available at [malawiclimaterisk.vercel.app](https://malawiclimaterisk.vercel.app).")
     st.markdown('<div class="main-header">Climate Risk Scoring Dashboard</div>', unsafe_allow_html=True)
     st.markdown('<div class="sub-header">Assessing Climate Vulnerability Across Malawian Districts</div>', unsafe_allow_html=True)
     
